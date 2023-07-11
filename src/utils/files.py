@@ -21,8 +21,9 @@ def get_files_from_dir(directory: str, extension: str) -> List[str]:
     if not extension.startswith("."):
         extension = "." + extension
 
-    # Use glob to get all files with the specified extension
-    file_paths = glob.glob(os.path.join(directory, "*" + extension))
+    # Use glob to get all files with the specified extension, and set recursive to True
+    file_paths = glob.glob(os.path.join(directory, "**", "*" + extension),
+                           recursive=True)
 
     # Raise an error if no files are found
     if not file_paths:

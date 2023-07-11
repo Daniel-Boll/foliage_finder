@@ -1,10 +1,11 @@
+import os
+
 import cv2
 import numpy as np
-import os
 from tqdm import tqdm
 
-def extract_leaves(image_path, output_folder):
 
+def extract_leaves(image_path, output_folder):
     os.makedirs(output_folder, exist_ok=True)
     min_area_threshold = 100
 
@@ -18,7 +19,8 @@ def extract_leaves(image_path, output_folder):
     _, mask = cv2.threshold(channels[3], 1, 255, cv2.THRESH_BINARY)
 
     # Find contours of the objects
-    contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL,
+                                   cv2.CHAIN_APPROX_SIMPLE)
 
     # Loop through each contour and save the segmented object
     for i, contour in enumerate(contours):

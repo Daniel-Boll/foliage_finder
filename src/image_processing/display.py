@@ -65,10 +65,9 @@ def display_contours_from_features(features):
             processed_features += 1
 
         if "Save" in action:
-            filename = filename.replace("assets/", "")
-            # plt.savefig(f"{path}/contour_{filename}.png")
+            filename = filename.split("/")[-1]
             plt.imsave(
-                f"{path}/contour_{filename}.png",
+                f"{path}/contour_{filename}",
                 cv2.cvtColor(original_image, cv2.COLOR_BGR2RGB),
             )
 
