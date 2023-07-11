@@ -9,10 +9,11 @@ def main():
     pp = pprint.PrettyPrinter(indent=2)
 
     try:
-        files = get_files_from_dir("assets/", "bmp")
+        files = get_files_from_dir("assets/", "png")
         # features = image_processing.extract_features(files[:2])
         features = image_processing.extract_features(files)
         image_processing.display(features)
+        #image_processing.separete_leaves(files, "output_segmented_images")
 
 
     except FileNotFoundError as e:

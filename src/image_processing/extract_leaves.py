@@ -1,33 +1,45 @@
 import cv2
-import os
 import numpy as np
+import os
+from tqdm import tqdm
 
-def extract_leaves(input_folder):
-    for filename in os.listdir(input_folder):
-        if filename.endswith(".bmp"):
-            image_path = os.path.join(input_folder, filename)
-            image = cv2.imread(image_path)
+def extract_leaves(image_path, output_folder):
 
-            # Convert the image to grayscale
-            gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    os.makedirs(output_folder, exist_ok=True)
+    min_area_threshold = 100
 
-            # Apply thresholding to create a binary image
-            _, threshold = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
+    # Read the image with transparency information
+    img = cv2.imread(image_path, cv2.IMREAD_UNCHANGED)
 
-            # Find contours in the binary image
-            contours, _ = cv2.findContours(threshold, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    # Split the image into channels
+    channels = cv2.split(img)
 
-            # Create a mask for the leaves
-            mask = cv2.drawContours(np.zeros(image.shape[:2], dtype=np.uint8), contours, -1, (255, 255, 255), thickness=cv2.FILLED)
+    # Create a mask by thresholding the alpha channel
+    _, mask = cv2.threshold(channels[3], 1, 255, cv2.THRESH_BINARY)
 
-            # Convert the image and mask to RGBA
-            image_rgba = cv2.cvtColor(image, cv2.COLOR_BGR2RGBA)
-            mask_rgba = cv2.cvtColor(mask, cv2.COLOR_GRAY2RGBA)
+    # Find contours of the objects
+    contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
-            # Apply the mask to the RGBA image
-            result = cv2.bitwise_and(image_rgba, mask_rgba)
+    # Loop through each contour and save the segmented object
+    for i, contour in enumerate(contours):
+        # Calculate the area of the contour
+        area = cv2.contourArea(contour)
 
-            output_path = os.path.join("output_segmented_images", filename.rsplit(".", 1)[0] + ".png")
-            cv2.imwrite(output_path, result)
+        # Skip small contours (likely noise or artifacts)
+        if area < min_area_threshold:
+            continue
 
-extract_leaves(input_folder, "output_segmented_images")
+        # Create a blank mask for the contour
+        contour_mask = np.zeros_like(mask)
+
+        # Draw the contour on the mask
+        cv2.drawContours(contour_mask, [contour], 0, 255, -1)
+
+        # Extract the object using the mask
+        object_img = cv2.bitwise_and(img, img, mask=contour_mask)
+
+        # Save the segmented object
+        image_file = os.path.basename(image_path)
+        object_name = f"{os.path.splitext(image_file)[0]}_{i}.png"
+        output_path = os.path.join(output_folder, object_name)
+        cv2.imwrite(output_path, object_img)

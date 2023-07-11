@@ -5,3 +5,4 @@ poetry.lock
 __pycache__/*
 src/image_processing/__pycache__/*
 src/utils/__pycache__/*
+output_segmented_images/

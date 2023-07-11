@@ -1,10 +1,10 @@
 import cv2
 from tqdm import tqdm
 
-from . import display, freeman_chain_code, statistics
+from . import display, freeman_chain_code, statistics, extract_leaves
 
 display = display.display_contours_from_features
-
+extract_leaves = extract_leaves.extract_leaves
 
 def extract_features(image_paths):
     features = {}
@@ -58,3 +58,7 @@ def preprocess_image(image):
     _, thresholded = cv2.threshold(blurred, 127, 255, cv2.THRESH_BINARY_INV)
 
     return thresholded
+
+def separete_leaves(image_paths, output_folder):
+    for image_paths in tqdm(image_paths, desc="Processing images", unit="image"):
+        extract_leaves(image_paths, output_folder)
