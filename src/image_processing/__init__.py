@@ -3,12 +3,14 @@ from enum import Enum
 import cv2
 import numpy as np
 from tqdm import tqdm
+import platform
 
 from . import display, extract_leaves, freeman_chain_code, statistics
 
 display = display.display_contours_from_features
 extract_leaves = extract_leaves.extract_leaves
 
+system = platform.system()
 
 def image_has_alpha_channel(image):
     """
@@ -97,7 +99,10 @@ def extract_features(image_paths, step=Step.TRAIN):
 
     for image_path in tqdm(image_paths, desc="Extracting features"):
         # Load the image
-        name = None if step == Step.CLASSIFY else image_path.split("/")[1]
+        if system == "Windows":
+            name = None if step == Step.CLASSIFY else image_path.split("\\")[1]
+        else:
+            name = None if step == Step.CLASSIFY else image_path.split("/")[1]
 
         contours = get_contours(image_path)
 

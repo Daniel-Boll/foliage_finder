@@ -4,7 +4,9 @@ from joblib import dump, load
 from sklearn.model_selection import train_test_split
 from sklearn.neural_network import MLPClassifier
 from sklearn.preprocessing import StandardScaler
+import platform
 
+system = platform.system()
 
 def train(features):
     # Separate the feature vectors and targets
@@ -126,4 +128,7 @@ def classify(features, files):
         # cv2.imshow("Image with Labels", image)
         # cv2.waitKey(0)
         # cv2.destroyAllWindows()
-        cv2.imwrite("classified/" + file.split("/")[-1], image)
+        if system == "Windows":
+            cv2.imwrite("classified/" + file.split("\\")[-1], image)
+        else:
+            cv2.imwrite("classified/" + file.split("/")[-1], image)
