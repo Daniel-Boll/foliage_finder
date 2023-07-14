@@ -5,12 +5,14 @@ import numpy as np
 from tqdm import tqdm
 import platform
 
-from . import display, extract_leaves, freeman_chain_code, statistics
+from . import display, extract_leaves, freeman_chain_code, statistics, local_binary_pattern
 
 display = display.display_contours_from_features
 extract_leaves = extract_leaves.extract_leaves
-
+extract_lbp_features = local_binary_pattern.extract_lbp_features
 system = platform.system()
+
+
 
 def image_has_alpha_channel(image):
     """
@@ -111,11 +113,22 @@ def extract_features(image_paths, step=Step.TRAIN):
         freeman_features = freeman_chain_code.extract_features(contours)
         statistical_features = statistics.extract_features(contours)
 
-        for freeman_feature, statistical_feature in zip(
-                freeman_features, statistical_features):
+        image = cv2.imread(image_path)
+
+        for i, (freeman_feature, statistical_feature) in enumerate(
+                zip(freeman_features, statistical_features)):
+
+            # Extract LBP features for each contour individually
+            contour = contours[i]
+            mask = np.zeros(image.shape[:2], dtype=np.uint8)
+            cv2.drawContours(mask, [contour], 0, 255, thickness=cv2.FILLED)
+            masked_image = cv2.bitwise_and(image, image, mask=mask)
+            lbp_features = extract_lbp_features(masked_image)
+
             feature = {
                 "chain_code": freeman_feature,
                 **statistical_feature,
+                "lbp_hist": lbp_features
             }
 
             if step == Step.TRAIN:
@@ -126,6 +139,7 @@ def extract_features(image_paths, step=Step.TRAIN):
         features[image_path] = contour_features
 
     return features
+
 
 
 def preprocess_image(image):
