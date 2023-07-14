@@ -3,7 +3,7 @@
 alias r := run
 
 # Run the project
-run:
+run: clean
 	poetry run python src/main.py
 
 # Run tests
@@ -14,8 +14,8 @@ simple:
 	poetry run python teste.py
 
 clean:
-	rm -rf contour_image.png
-	find outputs/contours -type f -name '*.png' -delete
+	rm -rf outputs/contours/*
+	rm -rf classified/*
 
 show:
-	feh contour_image.png
+	brave classified/*

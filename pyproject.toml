@@ -8,8 +8,8 @@ readme = "README.md"
 packages = [{include = "foliage_finder"}]
 
 [tool.poetry.dependencies]
-python = "^3.11"
-numpy = "^1.25.0"
+python = ">=3.10,<3.11"
+numpy = ">=1.22,<=1.24.3"
 scikit-learn = "^1.2.2"
 pandas = "^2.0.2"
 opencv-python = "^4.7.0.72"
@@ -19,6 +19,11 @@ pyqt5 = "^5.15.9"
 inquirer = "^3.1.3"
 tqdm = "^4.65.0"
 joblib = "^1.3.1"
+keras = "^2.13.1"
+pillow = "^10.0.0"
+scipy = "^1.11.1"
+tensorflow = "^2.13.0"
+scikit-image = "^0.21.0"
 
 [build-system]
 requires = ["poetry-core"]
