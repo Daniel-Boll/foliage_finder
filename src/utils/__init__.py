@@ -1,1 +1,1 @@
-from . import files
+from . import files, image
