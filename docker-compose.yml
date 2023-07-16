@@ -1,0 +1,10 @@
+version: '3'
+
+services:
+  tensorflow:
+    build: .
+    volumes:
+      - .:/app
+    ports:
+      - "5000:5000"
+    command: /bin/bash
