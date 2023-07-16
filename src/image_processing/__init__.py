@@ -1,17 +1,20 @@
+import multiprocessing as mp
 import platform
 from enum import Enum
+from functools import partial
 
 import cv2
-import numpy as np
+from joblib import dump, load
 from tqdm import tqdm
 
 from utils import image
 
-from . import (data_augmentation, display, extract_leaves, freeman_chain_code,
-               statistics)
+from . import (data_augmentation, extract_leaves, freeman_chain_code,
+               local_binary_pattern, statistics)
 
-display = display.display_contours_from_features
+# display = display.display_contours_from_features
 extract_leaves = extract_leaves.extract_leaves
+# extract_lbp_features = local_binary_pattern.extract_lbp_features
 
 system = platform.system()
 
@@ -22,39 +25,50 @@ class Step(Enum):
     CLASSIFY = 2
 
 
-def extract_features(image_paths, step=Step.TRAIN, augmentation_times=3):
+def augment_images(image_paths, augmentation_times=3):
+    data_augmentation.parallel_augmentation(image_paths, augmentation_times)
+    # data_augmentation.augment_images(image_paths, augmentation_times)
+
+
+def extract_features(image_paths, step=Step.TRAIN):
+    # define the number of processes to spawn.
+    # Here it is set to the number of cores.
+    num_processes = mp.cpu_count()
+
+    with mp.Pool(num_processes) as pool:
+        # use partial to fix the values of the second and third arguments
+        process_func = partial(extract_feature, step=step)
+        features_list = list(
+            tqdm(
+                pool.imap(process_func, image_paths),
+                total=len(image_paths),
+                colour="green" if step == Step.TRAIN else "yellow",
+                desc="Extracting features from images",
+                unit="image",
+            ))
+
+    # Merge all dictionaries from features_list into one dictionary
+    features = {
+        k: v
+        for feature_dict in features_list
+        for k, v in feature_dict.items()
+    }
+
+    return features
+
+
+def extract_feature(image_path, step=Step.TRAIN):
     features = {}
 
-    for image_path in tqdm(image_paths, desc="Extracting features"):
-        # Load the image
-        img = cv2.imread(image_path, cv2.IMREAD_UNCHANGED)
-        img = image.custom_zoom(img, (0.2, 0.2))
+    # Load the image
+    img = cv2.imread(image_path, cv2.IMREAD_UNCHANGED)
+    img = image.custom_zoom(img, (0.2, 0.2))
 
-        # Get the original contours and extract features
-        contours = image.get_contours(image_path)
-        features[image_path] = extract_features_from_contours(
-            contours, image_path, step)
+    # Get the original contours and extract features
+    contours = image.get_contours(image_path)
+    features[image_path] = extract_features_from_contours(
+        contours, image_path, step)
 
-        # Generate augmented images and extract features
-        for _ in range(augmentation_times):
-            # ImageDataGenerator requires 4D input, so we add a new dimension
-            # Also, it expects the format [samples][width][height][channels]
-            img_4d = np.expand_dims(img, axis=0)
-            for batch in data_augmentation.datagen.flow(img_4d, batch_size=1):
-                # Here batch[0] is the augmented image
-                augmented_img = (batch[0] * 255).astype(
-                    np.uint8)  # Convert back to [0, 255] range
-
-                # Calculate the contours for the augmented image
-                # and extract features
-                contours = image.get_contours(augmented_img)
-                augmented_features = extract_features_from_contours(
-                    contours, image_path, step)
-                features[f"{image_path}_aug"] = augmented_features
-
-                # We are using flow to create one augmented image at a time
-                # so we need to break the loop after the first image is created
-                break
     return features
 
 
@@ -63,11 +77,14 @@ def extract_features_from_contours(contours, image_path, step):
 
     freeman_features = freeman_chain_code.extract_features(contours)
     statistical_features = statistics.extract_features(contours)
+    local_binary_pattern_features = local_binary_pattern.extract_features(
+        contours, image_path)
 
     for freeman_feature, statistical_feature in zip(freeman_features,
                                                     statistical_features):
         feature = {
             "chain_code": freeman_feature,
+            "lbp": local_binary_pattern_features,
             **statistical_feature,
         }
 
@@ -79,6 +96,14 @@ def extract_features_from_contours(contours, image_path, step):
         contour_features.append(feature)
 
     return contour_features
+
+
+def save_features(features):
+    dump(features, "features.pkl")
+
+
+def load_features():
+    return load("features.pkl")
 
 
 def separate_leaves(image_paths, output_folder):

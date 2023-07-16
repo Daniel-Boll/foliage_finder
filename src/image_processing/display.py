@@ -2,10 +2,10 @@ import os
 
 import cv2
 import inquirer
-import matplotlib
+# import matplotlib
 import matplotlib.pyplot as plt
 
-matplotlib.use("tkagg")
+# matplotlib.use("tkagg")
 
 
 def display_contours_from_features(features):

@@ -6,6 +6,12 @@ import numpy as np
 
 def extract_features(contours: List[np.ndarray]):
     contour_features = []
+    aspect_ratios = []
+    eccentricities = []
+    solidities = []
+    extents = []
+    hu_moments_ = []
+
     for c in contours:
         if len(c) < 5:  # Skip contours with fewer than 5 points
             continue
@@ -32,13 +38,27 @@ def extract_features(contours: List[np.ndarray]):
         # Log transform to make hu moments scale invariant
         hu_moments = -np.sign(hu_moments) * np.log10(np.abs(hu_moments))
 
-        contour_features.append({
-            "aspect_ratio": aspect_ratio,
-            "eccentricity": eccentricity,
-            "solidity": solidity,
-            "extent": extent,
-            "hu_moments": hu_moments.flatten(),
-            "contours": contours,
-        })
+        aspect_ratios.append(aspect_ratio)
+        eccentricities.append(eccentricity)
+        solidities.append(solidity)
+        extents.append(extent)
+        hu_moments_.append(hu_moments.flatten())
+
+    # contour_features.append({
+    #     "aspect_ratio": aspect_ratio,
+    #     "eccentricity": eccentricity,
+    #     "solidity": solidity,
+    #     "extent": extent,
+    #     "hu_moments": hu_moments.flatten(),
+    #     "contours": contours,
+    # })
+    contour_features.append({
+        "aspect_ratio": aspect_ratios,
+        "eccentricity": eccentricities,
+        "solidity": solidities,
+        "extent": extents,
+        "hu_moments": hu_moments_,
+        "contours": contours,
+    })
 
     return contour_features

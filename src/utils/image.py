@@ -4,27 +4,15 @@ from PIL import Image
 
 
 def add_noise_and_blur(img):
-    # # Convert image to float and scale to [0, 1]
-    # img = img.astype(float) / 255.0
-    #
-    # # Add salt-and-pepper noise to the image
-    # img = random_noise(
-    #     img, mode="s&p",
-    #     amount=0.1)  # you can change the amount value as per your requirement
-
-    # Since the output of random_noise is float data in range [0, 1],
-    # we need to convert it back to uint8 with range [0, 255]
-    img = np.array(255 * img, dtype="uint8")
-
-    # Add a random Gaussian blur of random size with random kernel sizes
-    # and random sigma
     ksize = np.random.choice([1, 3, 5, 7, 9])
     img = cv2.GaussianBlur(img, (ksize, ksize), 0)
 
     return img
 
 
-def custom_zoom(img, zoom_range):
+def custom_zoom(img_pil, zoom_range):
+    img = np.array(img_pil)
+
     # Convert the image to grayscale to create a mask for the leaf
     img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
@@ -62,10 +50,7 @@ def custom_zoom(img, zoom_range):
         value=[255, 255, 255],  # white color for 3-channel image
     )
 
-    # Convert the numpy array back to a PIL Image
-    img_pil = Image.fromarray(img)
-
-    return img_pil
+    return img
 
 
 def image_has_alpha_channel(image):
