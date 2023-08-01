@@ -19,5 +19,3 @@ RUN apt-get update && apt-get install -y \
 # Install any needed packages specified in requirements.txt
 COPY requirements.txt /app
 RUN pip install --no-cache-dir -r requirements.txt
-
-# RUN echo 'complete -W "`grep -oE '\''^[a-zA-Z0-9_.-]+:([^=]|$)'\'' Makefile | sed '\''s/[^a-zA-Z0-9_.-]*$//'\`" make' >> /root/.bashrc

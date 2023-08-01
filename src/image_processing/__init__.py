@@ -60,10 +60,6 @@ def extract_features(image_paths, step=Step.TRAIN):
 def extract_feature(image_path, step=Step.TRAIN):
     features = {}
 
-    # Load the image
-    img = cv2.imread(image_path, cv2.IMREAD_UNCHANGED)
-    img = image.custom_zoom(img, (0.2, 0.2))
-
     # Get the original contours and extract features
     contours = image.get_contours(image_path)
     features[image_path] = extract_features_from_contours(
